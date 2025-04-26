@@ -6,17 +6,14 @@
 import Foundation
 
 
-public struct BodyData<T: Encodable> {
-    public let data: T
-}
-
 public protocol MBWebServiceProtocol: Sendable {
     func fethcData<E: Encodable, D: Decodable>(
         urlString: String,
         queryItems: [URLQueryItem]?,
         header: HttpHeader?,
         method: HttpMethods,
-        body: BodyData<E>?
+        body: BodyData<E>?,
+        checkStatusCode: Bool
     ) async throws -> D
 }
 
@@ -42,10 +39,22 @@ public final class MBWebService {
         return request
     }
     
-
-    private static func dowloandData(session: URLSession, request: URLRequest) async throws -> Data {
-        let (data,response) =  try! await session.data(for: request)
-        return data
+    
+    private static func downloadData(
+        session: URLSession,
+        request: URLRequest,
+        checkStatusCode: Bool
+    ) async throws -> Data {
+        do {
+            let (data,response) =  try await session.data(for: request)
+            if checkStatusCode {
+                try checkStatusCodeFor(response)
+            }
+            return data
+        } catch {
+            throw error
+        }
+        
     }
     
     private func decode<T: Decodable>(_ type: T.Type,_ data: Data) throws -> T {
@@ -56,6 +65,26 @@ public final class MBWebService {
         return try JSONEncoder().encode(value)
     }
     
+    private static func checkStatusCodeFor(_ response: URLResponse) throws{
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw HttpStatusError.unknown(-1)
+        }
+        let code = httpResponse.statusCode
+        switch code {
+        case 100..<200:
+            throw HttpStatusError.informational(code)
+        case 200..<300:
+            return
+        case 300..<400:
+            throw HttpStatusError.redirection(code)
+        case 400..<500:
+            throw HttpStatusError.serverError(code)
+        default:
+            throw HttpStatusError.unknown(code)
+        }
+        
+    }
+    
 }
 
 extension MBWebService: MBWebServiceProtocol {
@@ -64,27 +93,30 @@ extension MBWebService: MBWebServiceProtocol {
         queryItems: [URLQueryItem]?,
         header: HttpHeader?,
         method: HttpMethods,
-        body: BodyData<E>?
+        body: BodyData<E>?,
+        checkStatusCode: Bool
     ) async throws -> D {
-        guard let url = Self.generateURL(urlString: urlString, queryItems: queryItems)
-        else {throw MBError.one}
-        let encodedBody: Data = try encode(body?.data)
-        let request = Self.generateRequest(
-            url: url,
-            header: header,
-            method: method,
-            body: encodedBody
-        )
-        let session = URLSession(configuration: .default)
-        
-        
-        let data = try await Self.dowloandData(session: session, request: request)
-        let decodedData = try! decode(D.self, data)
-        return decodedData
+        do {
+            guard let url = Self.generateURL(urlString: urlString, queryItems: queryItems)
+            else {throw CustomError.detail("URL is invalid")}
+            let encodedBody = try encode(body?.data)
+            let request = Self.generateRequest(
+                url: url,
+                header: header,
+                method: method,
+                body: encodedBody
+            )
+            let session = URLSession(configuration: .default)
+            let data = try await Self.downloadData(
+                session: session,
+                request: request,
+                checkStatusCode: checkStatusCode
+            )
+            let decodedData = try decode(D.self, data)
+            return decodedData
+        } catch  {
+            throw error
+        }
     }
     
 }
-
-
-
-

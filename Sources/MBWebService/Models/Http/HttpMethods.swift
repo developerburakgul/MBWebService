@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  HttpMethods.swift
 //  MBWebService
 //
 //  Created by Burak Gül on 26.04.2025.
