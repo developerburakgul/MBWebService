@@ -15,6 +15,15 @@ public protocol MBWebServiceProtocol: Sendable {
         body: Data?,
         checkStatusCode: Bool
     ) async throws -> D
+    
+    func fethcData<E: Encodable,D: Decodable>(
+        urlString: String,
+        queryItems: [URLQueryItem]?,
+        header: HttpHeader?,
+        method: HttpMethods,
+        body: BodyData<E>?,
+        checkStatusCode: Bool
+    ) async throws -> D
 }
 
 public final class MBWebService {
@@ -116,6 +125,24 @@ extension MBWebService: MBWebServiceProtocol {
         } catch  {
             throw error
         }
+    }
+    
+    public func fethcData<E, D>(
+        urlString: String,
+        queryItems: [URLQueryItem]?,
+        header: HttpHeader?,
+        method: HttpMethods,
+        body: BodyData<E>?,
+        checkStatusCode: Bool
+    ) async throws -> D where E : Encodable, D : Decodable {
+         return try await fethcData(
+            urlString: urlString,
+            queryItems: queryItems,
+            header: header,
+            method: method,
+            body: try encode(body?.data),
+            checkStatusCode: <#T##Bool#>
+        )
     }
     
 }
