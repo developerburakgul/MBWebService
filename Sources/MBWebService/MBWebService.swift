@@ -18,7 +18,7 @@ public protocol MBWebServiceProtocol: Sendable {
 }
 
 public final class MBWebService {
-    static let shared: MBWebServiceProtocol = MBWebService()
+    public static let shared: MBWebServiceProtocol = MBWebService()
     
     private static func generateURL(urlString: String,queryItems: [URLQueryItem]?) -> URL?{
         var urlComponents = URLComponents(string: urlString)
