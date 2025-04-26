@@ -8,4 +8,8 @@
 
 public struct BodyData<T: Encodable> {
     public let data: T
+    
+    public init(data: T) {
+        self.data = data
+    }
 }
