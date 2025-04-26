@@ -141,7 +141,7 @@ extension MBWebService: MBWebServiceProtocol {
             header: header,
             method: method,
             body: try encode(body?.data),
-            checkStatusCode: <#T##Bool#>
+            checkStatusCode: checkStatusCode
         )
     }
     
