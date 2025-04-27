@@ -9,7 +9,7 @@ import Foundation
 
 public struct HttpHeader {
     var headers: [String: String]
-    init(headers: [String : String]) {
+    public init(headers: [String : String]) {
         self.headers = headers
     }
 }
