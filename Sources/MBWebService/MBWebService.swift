@@ -67,11 +67,21 @@ public final class MBWebService {
     }
     
     private func decode<T: Decodable>(_ type: T.Type,_ data: Data) throws -> T {
-        return try JSONDecoder().decode(type, from: data)
+        do {
+            let decodedData = try JSONDecoder().decode(type, from: data)
+            return decodedData
+        } catch {
+            throw EncodeDecodeError.decodingFailed
+        }
     }
     
     private func encode<T: Encodable>(_ value: T) throws -> Data {
-        return try JSONEncoder().encode(value)
+        do {
+            let encodedData = try JSONEncoder().encode(value)
+            return encodedData
+        } catch {
+            throw EncodeDecodeError.encodingFailed
+        }
     }
     
     private static func checkStatusCodeFor(_ response: URLResponse) throws{
