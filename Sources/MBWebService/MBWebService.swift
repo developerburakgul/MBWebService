@@ -16,6 +16,15 @@ public protocol MBWebServiceProtocol: Sendable {
         checkStatusCode: Bool
     ) async throws -> D
     
+    func fethcData(
+        urlString: String,
+        queryItems: [URLQueryItem]?,
+        header: HttpHeader?,
+        method: HttpMethods,
+        body: Data?,
+        checkStatusCode: Bool
+    ) async throws -> Data
+    
     func fethcData<E: Encodable,D: Decodable>(
         urlString: String,
         queryItems: [URLQueryItem]?,
@@ -153,6 +162,35 @@ extension MBWebService: MBWebServiceProtocol {
             body: try encode(body?.data),
             checkStatusCode: checkStatusCode
         )
+    }
+    
+    public func fethcData(
+        urlString: String,
+        queryItems: [URLQueryItem]?,
+        header: HttpHeader?,
+        method: HttpMethods,
+        body: Data?,
+        checkStatusCode: Bool
+    ) async throws -> Data {
+        do {
+            guard let url = Self.generateURL(urlString: urlString, queryItems: queryItems)
+            else {throw CustomError.detail("URL is invalid")}
+            let request = Self.generateRequest(
+                url: url,
+                header: header,
+                method: method,
+                body: body
+            )
+            let session = URLSession(configuration: .default)
+            let data = try await Self.downloadData(
+                session: session,
+                request: request,
+                checkStatusCode: checkStatusCode
+            )
+            return data
+        } catch  {
+            throw error
+        }
     }
     
 }
