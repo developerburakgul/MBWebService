@@ -13,25 +13,28 @@ public protocol MBWebServiceProtocol: Sendable {
         header: HttpHeader?,
         method: HttpMethods,
         body: Data?,
-        checkStatusCode: Bool
+        checkStatusCode: Bool,
+        timeoutInterval: TimeInterval
     ) async throws -> D
-    
+
     func fethcData(
         urlString: String,
         queryItems: [URLQueryItem]?,
         header: HttpHeader?,
         method: HttpMethods,
         body: Data?,
-        checkStatusCode: Bool
+        checkStatusCode: Bool,
+        timeoutInterval: TimeInterval
     ) async throws -> Data
-    
-    func fethcData<E: Encodable,D: Decodable>(
+
+    func fethcData<E: Encodable, D: Decodable>(
         urlString: String,
         queryItems: [URLQueryItem]?,
         header: HttpHeader?,
         method: HttpMethods,
         body: BodyData<E>?,
-        checkStatusCode: Bool
+        checkStatusCode: Bool,
+        timeoutInterval: TimeInterval
     ) async throws -> D
 }
 
@@ -48,12 +51,14 @@ public final class MBWebService {
         url: URL,
         header: HttpHeader?,
         method: HttpMethods,
-        body: Data?
+        body: Data?,
+        timeoutInterval: TimeInterval
     ) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = header?.headers
         request.httpBody = body
+        request.timeoutInterval = timeoutInterval
         return request
     }
     
@@ -122,7 +127,8 @@ extension MBWebService: MBWebServiceProtocol {
         header: HttpHeader?,
         method: HttpMethods,
         body: Data?,
-        checkStatusCode: Bool
+        checkStatusCode: Bool,
+        timeoutInterval: TimeInterval
     ) async throws -> D {
         do {
             guard let url = Self.generateURL(urlString: urlString, queryItems: queryItems)
@@ -131,7 +137,8 @@ extension MBWebService: MBWebServiceProtocol {
                 url: url,
                 header: header,
                 method: method,
-                body: body
+                body: body,
+                timeoutInterval: timeoutInterval
             )
             let session = URLSession(configuration: .default)
             let data = try await Self.downloadData(
@@ -152,7 +159,8 @@ extension MBWebService: MBWebServiceProtocol {
         header: HttpHeader?,
         method: HttpMethods,
         body: BodyData<E>?,
-        checkStatusCode: Bool
+        checkStatusCode: Bool,
+        timeoutInterval: TimeInterval
     ) async throws -> D where E : Encodable, D : Decodable {
          return try await fethcData(
             urlString: urlString,
@@ -160,7 +168,8 @@ extension MBWebService: MBWebServiceProtocol {
             header: header,
             method: method,
             body: try encode(body?.data),
-            checkStatusCode: checkStatusCode
+            checkStatusCode: checkStatusCode,
+            timeoutInterval: timeoutInterval
         )
     }
     
@@ -170,7 +179,8 @@ extension MBWebService: MBWebServiceProtocol {
         header: HttpHeader?,
         method: HttpMethods,
         body: Data?,
-        checkStatusCode: Bool
+        checkStatusCode: Bool,
+        timeoutInterval: TimeInterval = 60
     ) async throws -> Data {
         do {
             guard let url = Self.generateURL(urlString: urlString, queryItems: queryItems)
@@ -179,7 +189,8 @@ extension MBWebService: MBWebServiceProtocol {
                 url: url,
                 header: header,
                 method: method,
-                body: body
+                body: body,
+                timeoutInterval: timeoutInterval
             )
             let session = URLSession(configuration: .default)
             let data = try await Self.downloadData(
