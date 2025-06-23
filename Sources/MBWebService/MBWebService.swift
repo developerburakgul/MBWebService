@@ -124,7 +124,7 @@ extension MBWebService: MBWebServiceProtocol {
     public func fethcData<D: Decodable>(
         urlString: String,
         queryItems: [URLQueryItem]?,
-        header: HttpHeader?,
+        header: HttpHeader? = .defaultHttpHeader,
         method: HttpMethods,
         body: Data?,
         checkStatusCode: Bool,
@@ -156,7 +156,7 @@ extension MBWebService: MBWebServiceProtocol {
     public func fethcData<E, D>(
         urlString: String,
         queryItems: [URLQueryItem]?,
-        header: HttpHeader?,
+        header: HttpHeader? = .defaultHttpHeader,
         method: HttpMethods,
         body: BodyData<E>?,
         checkStatusCode: Bool,
@@ -176,7 +176,7 @@ extension MBWebService: MBWebServiceProtocol {
     public func fethcData(
         urlString: String,
         queryItems: [URLQueryItem]?,
-        header: HttpHeader?,
+        header: HttpHeader? = .defaultHttpHeader,
         method: HttpMethods,
         body: Data?,
         checkStatusCode: Bool,

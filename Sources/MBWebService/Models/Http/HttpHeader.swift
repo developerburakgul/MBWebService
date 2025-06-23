@@ -13,3 +13,12 @@ public struct HttpHeader {
         self.headers = headers
     }
 }
+
+extension HttpHeader {
+   public static let defaultHttpHeader = HttpHeader(
+        headers: [
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        ]
+    )
+}
